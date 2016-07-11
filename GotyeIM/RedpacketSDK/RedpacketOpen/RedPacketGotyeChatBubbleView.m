@@ -134,17 +134,27 @@ static CGFloat notiHeight = 30;
     [redpacketCompanyIcon setImage:[UIImage imageNamed:@"RedpacketCellResource.bundle/redPacket_yunAccount_icon"]];
     redpacketCompanyIcon.translatesAutoresizingMaskIntoConstraints = NO;
     
+    UILabel * redpacketMemberLable = [UILabel new];
+    redpacketMemberLable.font = [UIFont systemFontOfSize:12.0f];
+    redpacketMemberLable.textColor = rp_hexColor(0xf14e46);
+    redpacketMemberLable.textAlignment = NSTextAlignmentRight;
+    
     redpacketIcon.frame = CGRectMake(Layout(12), Layout(18), Layout(26), Layout(34));
     redpacketTitleLabel.frame = CGRectMake(Layout(48), Layout(19), Layout(size.width - 20), Layout(15));
     redpacketSubLabel.frame = CGRectMake(Layout(48), Layout(40), Layout(size.width - 60), Layout(12));
     redpacketNameLabel.frame = CGRectMake(Layout(12), Layout(95 - 12 - 4), Layout(size.width - 12 - 12), Layout(12));
     redpacketCompanyIcon.frame = CGRectZero;
+    redpacketMemberLable.frame = CGRectMake(Layout(12), Layout(95 - 12 - 4), Layout(size.width + kBubbleCommaGap - 12 - 4), Layout(12));
+
+
     
     [bubbleImageView addSubview:redpacketIcon];
     [bubbleImageView addSubview:redpacketTitleLabel];
     [bubbleImageView addSubview:redpacketSubLabel];
     [bubbleImageView addSubview:redpacketNameLabel];
     [bubbleImageView addSubview:redpacketCompanyIcon];
+    [bubbleImageView addSubview:redpacketMemberLable];
+    
     
     // 给红包赋值
     NSDictionary * dict = [self transformExtToDictionary:message];
@@ -161,6 +171,13 @@ static CGFloat notiHeight = 30;
     
     redpacketSubLabel.text = @"查看红包";
     redpacketNameLabel.text = [dict valueForKey:RedpacketKeyRedpacketOrgName];
+    
+    if ([[dict valueForKey:RedpacketKeyRedapcketToAnyone] isEqualToString:@"member"]) {
+        redpacketMemberLable.text = @"专属红包";
+    }else
+    {
+        redpacketMemberLable.text = @"";
+    }
     
     // 绘制气泡
     if(msgFromSelf)
