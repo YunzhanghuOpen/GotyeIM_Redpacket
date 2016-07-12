@@ -1,0 +1,32 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "87E8B50477E623BAED8960CD9551901D8CF9E99F",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "50cbe5fa-67d4-dc42-94d9-000c24c5d4ba++3146" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "87E8B50477E623BAED8960CD9551901D8CF9E99F" : 0,
+    "50cbe5fa-67d4-dc42-94d9-000c24c5d4ba++3146" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "3FEECEF8-52AB-447D-8231-FAAA7CE329B8",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "87E8B50477E623BAED8960CD9551901D8CF9E99F" : "GotyeIM_Redpacket\/",
+    "50cbe5fa-67d4-dc42-94d9-000c24c5d4ba++3146" : "GotyeIM\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "GotyeIM",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "GotyeIM.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/192.168.1.18\/svn\/QINPLUS_SDK_VER2",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "50cbe5fa-67d4-dc42-94d9-000c24c5d4ba++3146"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:YunzhanghuOpen\/GotyeIM_Redpacket.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "87E8B50477E623BAED8960CD9551901D8CF9E99F"
+    }
+  ]
+}
