@@ -586,7 +586,7 @@
 				ORGANIZATIONNAME = Gotye;
 				TargetAttributes = {
 					D0A18E5219D514A90001CFA2 = {
-						DevelopmentTeam = PUEB48NTQQ;
+						DevelopmentTeam = 58Z5LGMHU6;
 					};
 				};
 			};
@@ -800,7 +800,7 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.redpacket.gotye.demo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hawk.qj;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
@@ -837,7 +837,7 @@
 					"$(PROJECT_DIR)/GotyeIM/RedpacketSDK/AliPay/AlipayLib",
 				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.redpacket.gotye.demo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hawk.qj;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
