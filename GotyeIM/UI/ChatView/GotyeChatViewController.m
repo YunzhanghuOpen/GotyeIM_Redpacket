@@ -136,10 +136,10 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
     if ([RedpacketMessageModel isRedpacketRelatedMessage:ext]) {
         if ([RedpacketMessageModel isRedpacketTakenMessage:ext])    {
             // 由于没有透传消息 如果群红包，A发的，A打开，others收到消息，others删除消息
-            if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]]) {
-                [GotyeOCAPI deleteMessage:chatTarget msg:message];
-                return;
-            }
+            // if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]]) {
+            //     [GotyeOCAPI deleteMessage:chatTarget msg:message];
+            //     return;
+            // }
             // 由于没有透传消息 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
             if (![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
                 [GotyeOCAPI deleteMessage:chatTarget msg:message];
