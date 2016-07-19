@@ -93,6 +93,46 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
 
 #pragma Delegate RedpacketViewControlDelegate
 
+// 拼装RedpacketUserInfo by Message
+- (RedpacketUserInfo *)profileEntityWith:(GotyeOCMessage *)model isSender:(BOOL)isSender{
+    
+    RedpacketUserInfo *userInfo = [RedpacketUserInfo new];
+    userInfo.userAvatar = model.sender.icon.url;
+    NSString *nickName = model.sender.name;
+    userInfo.userNickname = nickName;
+    if (userInfo.userId.length == 0) {
+        userInfo.userId = model.sender.name;
+    }
+    userInfo.userAvatar = model.sender.icon.url;
+    return userInfo;
+}
+
+
+- (RedpacketUserInfo *)fetchOpenRedpacketUserInfo:(NSString *)userId {
+    
+    RedpacketUserInfo *userInfo = nil;
+    if (self.groupUsersArray.count == 0) {
+        userInfo = [RedpacketUserInfo new];
+        userInfo.userNickname = userId;
+    }
+    else{
+        GotyeOCUser *tempUser = nil;
+        for (GotyeOCUser *user in self.groupUsersArray) {
+            if ([user.name isEqualToString:userId]) {
+                tempUser = user;
+                break;
+            }
+        }
+        if (tempUser) {
+            userInfo = [self profileEntityWith:tempUser];
+        }else{
+            userInfo = [RedpacketUserInfo new];
+            userInfo.userNickname = userId;
+        }
+    }
+    return userInfo;
+}
+
 // 要在此处根据userID获得用户昵称,和头像地址
 - (RedpacketUserInfo *)profileEntityWith:(GotyeOCUser *)user
 {
@@ -136,10 +176,10 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
     if ([RedpacketMessageModel isRedpacketRelatedMessage:ext]) {
         if ([RedpacketMessageModel isRedpacketTakenMessage:ext])    {
             // // 由于没有透传消息 如果群红包，A发的，A打开，others收到消息，others删除消息
-            // if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]]) {
-            //     [GotyeOCAPI deleteMessage:chatTarget msg:message];
-            //     return;
-            // }
+            if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]]) {
+                [GotyeOCAPI deleteMessage:chatTarget msg:message];
+                return;
+            }
             // 由于没有透传消息 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
             if (![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
                 [GotyeOCAPI deleteMessage:chatTarget msg:message];
@@ -237,7 +277,7 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
     
     NSString *extString = [[NSString alloc] initWithData:extData encoding:NSUTF8StringEncoding];
     
-    [message putExtraData: [extString UTF8String] len:strlen([extString UTF8String])];
+    message.extraText = extString;
     
     [GotyeOCAPI sendMessage:message];
     
@@ -266,7 +306,7 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
     if (chatTarget.type == GotyeChatTargetTypeUser) {
         
         GotyeOCMessage* message = [GotyeOCMessage createTextMessage:chatTarget text:text];
-        [message putExtraData: [extString UTF8String] len:strlen([extString UTF8String])];
+        message.extraText = extString;
         [GotyeOCAPI sendMessage:message];
         [self reloadHistorys:YES];
         
@@ -276,13 +316,13 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
             text = @"你领取了自己的红包";
             // 如果是群红包，这个红包被自己领了，则给自己发一条消息，同时在消息的接收处过滤出来这条消息（过滤方式，检测是否是红包消息，检测消息发送方和自己是不是同一个人，是同一个人则删除此消息）
             GotyeOCMessage* message = [GotyeOCMessage createTextMessage:chatTarget text:text];
-            [message putExtraData: [extString UTF8String] len:strlen([extString UTF8String])];
+            message.extraText = extString;
             [GotyeOCAPI sendMessage:message];
             [self reloadHistorys:YES];
             
         }else {
             GotyeOCMessage* message = [GotyeOCMessage createTextMessage:chatTarget text:text];
-            [message putExtraData: [extString UTF8String] len:strlen([extString UTF8String])];
+            message.extraText = extString;
             [GotyeOCAPI sendMessage:message];
             [self reloadHistorys:YES];
         }
@@ -295,15 +335,12 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
     BOOL isGroup = chatTarget.type == GotyeChatTargetTypeRoom | chatTarget.type == GotyeChatTargetTypeGroup;
     messageModel.redpacketReceiver.isGroup = isGroup;
     
-    messageModel.redpacketSender.userAvatar = model.sender.icon.url;
-    
-    NSString *nickName = model.sender.name;
-    if (nickName.length == 0) {
-        nickName = model.sender.name;
-    }
-    messageModel.redpacketSender.userNickname = nickName;
-    if (messageModel.redpacketSender.userId.length == 0) {
-        messageModel.redpacketSender.userId = model.sender.name;
+    if (isGroup) {
+        messageModel.redpacketSender = [self profileEntityWith:model isSender:YES];
+        messageModel.toRedpacketReceiver = [self fetchOpenRedpacketUserInfo:messageModel.toRedpacketReceiver.userId];
+    }else
+    {
+        messageModel.redpacketSender = [self profileEntityWith:model isSender:YES];
     }
     
     return messageModel;
@@ -1381,7 +1418,7 @@ UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UIN
         
     }else {
 #ifdef REDPACKET_AVALABLE
-
+        
         GotyeOCMessage* message = messageList[indexPath.row];
         NSDictionary *dict = [self transformExtToDictionary:message];
         

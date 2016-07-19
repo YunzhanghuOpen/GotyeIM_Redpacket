@@ -31,6 +31,9 @@
     
     NSArray *notifyList;
     NSArray *sessionList;
+#ifdef REDPACKET_AVALABLE
+    //    NSMutableArray * buffArray;
+#endif
 }
 
 @end
@@ -79,16 +82,18 @@
     NSDictionary * ext = [self transformExtToDictionary:message];
     if ([RedpacketMessageModel isRedpacketRelatedMessage:ext]) {
         if ([RedpacketMessageModel isRedpacketTakenMessage:ext])    {
-            
-            // 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
-            // if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]] || ![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
-             if (![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
+            // 由于没有透传消息 如果群红包，A发的，A打开，others收到消息，others删除消息 || 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
+            if ([ext[@"money_sender_id"] isEqualToString:ext[@"money_receiver_id"]] || ![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
+                
                 if (message.receiver.type == GotyeChatTargetTypeRoom ) {
-                    [GotyeOCAPI deleteMessage:[GotyeOCRoom roomWithId:message.dbID] msg:message];
+                    GotyeOCChatTarget * chatTarget = [GotyeOCRoom roomWithId:message.receiver.id];
+                    [GotyeOCAPI deleteMessage:chatTarget msg:message];
+                    [GotyeOCAPI getMessageList:chatTarget more:YES];
                     
-                }
-                else if(message.receiver.type == GotyeChatTargetTypeGroup){
-                    [GotyeOCAPI deleteMessage:[GotyeOCGroup groupWithId:message.dbID] msg:message];
+                }else if(message.receiver.type == GotyeChatTargetTypeGroup){
+                    GotyeOCChatTarget * chatTarget = [GotyeOCGroup groupWithId:message.receiver.id];
+                    [GotyeOCAPI deleteMessage:chatTarget msg:message];
+                    [GotyeOCAPI getMessageList:chatTarget more:YES];
                 }
                 return;
             }
@@ -179,6 +184,18 @@
     
     notifyList = [GotyeOCAPI getNotifyList];
     sessionList = [GotyeOCAPI getSessionList];
+    
+    //    @autoreleasepool {
+    //        for (GotyeOCChatTarget * chatTarget in sessionList) {
+    //            for (GotyeOCMessage * msg in buffArray) {
+    //                if (chatTarget.id == msg.receiver.id) {
+    //                    [GotyeOCAPI deleteMessage:chatTarget msg:msg];
+    ////                    NSArray * mesgar = [GotyeOCAPI getMessageList:chatTarget more:YES];
+    //                }
+    //            }
+    //        }
+    //    }
+    //    [buffArray removeAllObjects];
     
     [self.tableView reloadData];
     
