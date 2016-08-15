@@ -27,6 +27,7 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 
+GotyeIM/GotyeAPI/libgotyeapi.a
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3E56E66F1D5427FF00AA03D1 /* libgotyeapi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E56E66E1D5427FF00AA03D1 /* libgotyeapi.a */; };
 		3E7741431D1BE254008ED159 /* RedpacketCellResource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 3E7741421D1BE254008ED159 /* RedpacketCellResource.bundle */; };
 		3E80BD8E1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E80BD7A1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m */; };
 		3E80BD911D1A3B17004A645A /* RedpacketNetworkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E80BD801D1A3B17004A645A /* RedpacketNetworkHelper.m */; };
@@ -87,6 +88,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3E56E66E1D5427FF00AA03D1 /* libgotyeapi.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libgotyeapi.a; sourceTree = "<group>"; };
 		3E7741421D1BE254008ED159 /* RedpacketCellResource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = RedpacketCellResource.bundle; sourceTree = "<group>"; };
 		3E80BD791D1A3B17004A645A /* RedPacketGotyeChatBubbleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RedPacketGotyeChatBubbleView.h; sourceTree = "<group>"; };
 		3E80BD7A1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RedPacketGotyeChatBubbleView.m; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 				43C5CB3C1BF9C8E800C4A407 /* GLKit.framework in Frameworks */,
 				43C5CB371BF9C3B300C4A407 /* Security.framework in Frameworks */,
 				437B3F301BB3FBA700A9CE91 /* MobileCoreServices.framework in Frameworks */,
+				3E56E66F1D5427FF00AA03D1 /* libgotyeapi.a in Frameworks */,
 				437B3F2D1BB3FB9300A9CE91 /* CFNetwork.framework in Frameworks */,
 				43CB31411AFB327E00FFD63D /* CoreTelephony.framework in Frameworks */,
 				3ECC2A0B1D2CF77000AB3129 /* AlipaySDK.a in Frameworks */,
@@ -350,6 +353,7 @@
 		D069F4D81A19A4C400CBDA8A /* GotyeAPI */ = {
 			isa = PBXGroup;
 			children = (
+				3E56E66E1D5427FF00AA03D1 /* libgotyeapi.a */,
 				4D46FF891C97A438001A7AD7 /* GotyeOCAPI.h */,
 				4D46FF8A1C97A438001A7AD7 /* GotyeOCChatTarget.h */,
 				4D46FF8B1C97A438001A7AD7 /* GotyeOCDeleget.h */,
