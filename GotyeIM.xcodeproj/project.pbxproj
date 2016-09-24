@@ -584,11 +584,6 @@
 				CLASSPREFIX = Gotye;
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = Gotye;
-				TargetAttributes = {
-					D0A18E5219D514A90001CFA2 = {
-						DevelopmentTeam = 58Z5LGMHU6;
-					};
-				};
 			};
 			buildConfigurationList = D0A18E4E19D514A90001CFA2 /* Build configuration list for PBXProject "GotyeIM" */;
 			compatibilityVersion = "Xcode 3.2";
