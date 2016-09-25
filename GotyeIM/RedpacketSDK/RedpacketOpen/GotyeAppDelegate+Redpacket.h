@@ -6,8 +6,8 @@
 //  Copyright © 2016年 Gotye. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "GotyeAppDelegate.h"
+#import <Foundation/Foundation.h>
 
 @interface GotyeAppDelegate (Redpacket)
 - (void)redpacketApplicationDidBecomeActive:(UIApplication *)application;

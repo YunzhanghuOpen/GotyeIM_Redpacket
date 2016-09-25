@@ -10,7 +10,12 @@
 #import "GotyeUIUtil.h"
 
 #import "GotyeContactViewController.h"
+#ifdef REDPACKET_AVALABLE
+#import "RedPacketMessageViewController.h"
+#else
 #import "GotyeMessageViewController.h"
+#endif
+
 #import "GotyeSettingViewController.h"
 
 #import "GotyeAddFriendController.h"
@@ -36,8 +41,12 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
   // Do any additional setup after loading the view from its nib.
-
-  [self addChildViewController:[[GotyeMessageViewController alloc] init]];
+    
+#ifdef REDPACKET_AVALABLE
+    [self addChildViewController:[[RedPacketMessageViewController alloc] init]];
+#else
+    [self addChildViewController:[[GotyeMessageViewController alloc] init]];
+#endif
   [self addChildViewController:[[GotyeContactViewController alloc] init]];
   [self addChildViewController:[[GotyeSettingViewController alloc] init]];
 

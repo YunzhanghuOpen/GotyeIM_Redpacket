@@ -11,8 +11,11 @@
 #import "GotyeOCAPI.h"
 
 #import "GotyeUIUtil.h"
+#ifdef REDPACKET_AVALABLE
+#import "RedPacketChatViewController.h"
+#else
 #import "GotyeChatViewController.h"
-
+#endif
 @interface GotyeUserInfoController () <GotyeOCDelegate>
 
 @end
@@ -116,9 +119,15 @@
 {
     UINavigationController *navController = self.navigationController;
     [GotyeUIUtil popToRootViewControllerForNavgaion:navController animated:NO];
-    
+#ifdef REDPACKET_AVALABLE
+    RedPacketChatViewController *viewController = [[RedPacketChatViewController alloc] initWithTarget:userTarget];
+    [navController pushViewController:viewController animated:YES];
+#else
     GotyeChatViewController *viewController = [[GotyeChatViewController alloc] initWithTarget:userTarget];
     [navController pushViewController:viewController animated:YES];
+#endif
+    
+
 }
 
 - (IBAction)kickoutClick:(id)sender

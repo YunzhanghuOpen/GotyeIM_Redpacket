@@ -1,12 +1,12 @@
 //
-//  GotyeTableViewController.m
+//  RedPacketMessageViewController.m
 //  GotyeIM
 //
-//  Created by Peter on 14-9-29.
-//  Copyright (c) 2014年 Gotye. All rights reserved.
+//  Created by 非夜 on 16/9/24.
+//  Copyright © 2016年 Gotye. All rights reserved.
 //
 
-#import "GotyeMessageViewController.h"
+#import "RedPacketMessageViewController.h"
 
 #import "GotyeNotifyController.h"
 
@@ -14,11 +14,16 @@
 
 #import "GotyeOCAPI.h"
 
-#import "GotyeChatViewController.h"
+#import "RedPacketChatViewController.h"
 
-@interface GotyeMessageViewController () <GotyeContextMenuCellDataSource,
-                                          GotyeContextMenuCellDelegate,
-                                          GotyeOCDelegate> {
+#import "RedpacketMessageModel.h"
+
+// 主要引入messageCell
+#import "GotyeMessageViewController.h"
+
+@interface RedPacketMessageViewController () <GotyeContextMenuCellDataSource,
+                                              GotyeContextMenuCellDelegate,
+                                              GotyeOCDelegate> {
   BOOL enteringRoom;
 
   BOOL isTabTop;
@@ -29,7 +34,87 @@
 
 @end
 
-@implementation GotyeMessageViewController
+@implementation RedPacketMessageViewController
+
+- (NSString *)handleMessage:(GotyeOCMessage *)message
+               withChatType:(GotyeChatTargetType)type
+                    andUser:(GotyeOCUser *)user
+                 andContent:(NSString *)content {
+
+  NSDictionary *dict = [self transformExtToDictionary:message];
+  if ([RedpacketMessageModel isRedpacketTakenMessage:dict]) {
+    NSString *senderID = [dict valueForKey:RedpacketKeyRedpacketSenderId];
+    NSString *receiverID = [dict valueForKey:RedpacketKeyRedpacketReceiverId];
+    //  标记为已读
+    if ([senderID isEqualToString:[GotyeOCAPI getLoginUser].name] &&
+        ![receiverID isEqualToString:[GotyeOCAPI getLoginUser].name]) {
+      /**
+       *  当前用户是红包发送者。
+       */
+      NSString *text =
+          [NSString stringWithFormat:@"%@领取了你的红包", receiverID];
+      return text;
+    } else {
+      return message.text;
+    }
+  } else {
+    if (type == GotyeChatTargetTypeUser) {
+      return content;
+
+    } else {
+      return [NSString stringWithFormat:@"%@:%@", user.name, content];
+    }
+  }
+}
+
+- (void)delToSelfPacketMessage:(GotyeOCMessage *)message {
+
+  if (message == nil) {
+    return;
+  }
+
+  GotyeOCUser *loginUser = [GotyeOCAPI getLoginUser];
+
+  NSDictionary *ext = [self transformExtToDictionary:message];
+  if ([RedpacketMessageModel isRedpacketRelatedMessage:ext]) {
+    if ([RedpacketMessageModel isRedpacketTakenMessage:ext]) {
+
+      // 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
+      if (![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
+        if (message.receiver.type == GotyeChatTargetTypeRoom) {
+          [GotyeOCAPI deleteMessage:[GotyeOCRoom roomWithId:message.dbID]
+                                msg:message];
+
+        } else if (message.receiver.type == GotyeChatTargetTypeGroup) {
+          [GotyeOCAPI deleteMessage:[GotyeOCGroup groupWithId:message.dbID]
+                                msg:message];
+        }
+        return;
+      }
+    }
+  }
+}
+
+- (NSDictionary *)transformExtToDictionary:(GotyeOCMessage *)message {
+
+  NSDictionary *dic = nil;
+
+  NSData *data = [message
+      getExtraData]; //[NSData dataWithContentsOfFile:message.extra.path];
+  if (data != nil) {
+    char *str = malloc(data.length + 1);
+    [data getBytes:str length:data.length];
+    str[data.length] = 0;
+    NSString *extraStr = [NSString stringWithUTF8String:str];
+    free(str);
+    NSData *jsonData = [extraStr dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                          options:NSJSONReadingMutableContainers
+                                            error:&err];
+  }
+  return dic;
+}
 
 - (id)init {
   self = [super init];
@@ -134,7 +219,7 @@
 
 - (void)onReceiveMessage:(GotyeOCMessage *)message
      downloadMediaIfNeed:(bool *)downloadMediaIfNeed {
-
+  [self delToSelfPacketMessage:message];
   [self setTabBarItemIcon];
 
   if (!isTabTop)
@@ -159,6 +244,12 @@
 - (void)onGetMessageList:(GotyeStatusCode)code
                  msglist:(NSArray *)msgList
      downloadMediaIfNeed:(bool *)downloadMediaIfNeed {
+
+  @autoreleasepool {
+    for (GotyeOCMessage *msg in msgList) {
+      [self delToSelfPacketMessage:msg];
+    }
+  }
 
   [self setTabBarItemIcon];
 
@@ -202,8 +293,8 @@
 
   if (code == GotyeStatusCodeOK) {
     if (self.navigationController.topViewController == self.tabBarController) {
-      GotyeChatViewController *viewController =
-          [[GotyeChatViewController alloc] initWithTarget:room];
+      RedPacketChatViewController *viewController =
+          [[RedPacketChatViewController alloc] initWithTarget:room];
       [self.navigationController pushViewController:viewController
                                            animated:YES];
     }
@@ -321,8 +412,10 @@
         GotyeOCUser *user = [GotyeOCAPI getUserDetail:target forceRequest:NO];
 
         cell.labelUsername.text = user.name;
-          
-        cell.labelMessage.text = contentStr;
+        cell.labelMessage.text = [self handleMessage:lastMessage
+                                        withChatType:target.type
+                                             andUser:user
+                                          andContent:contentStr];
 
         UIImage *headImage = [GotyeUIUtil getHeadImage:user.icon.path
                                            defaultIcon:@"head_icon_user"];
@@ -336,10 +429,10 @@
             [GotyeOCAPI getUserDetail:lastMessage.sender forceRequest:NO];
 
         cell.labelUsername.text = room.name;
-
-        cell.labelMessage.text =
-            [NSString stringWithFormat:@"%@:%@", user.name, contentStr];
-
+        cell.labelMessage.text = [self handleMessage:lastMessage
+                                        withChatType:target.type
+                                             andUser:user
+                                          andContent:contentStr];
         cell.imageHead.image = [GotyeUIUtil getHeadImage:room.icon.path
                                              defaultIcon:@"head_icon_room"];
 
@@ -352,9 +445,10 @@
             [GotyeOCAPI getUserDetail:lastMessage.sender forceRequest:NO];
 
         cell.labelUsername.text = group.name;
-          
-        cell.labelMessage.text =
-            [NSString stringWithFormat:@"%@:%@", user.name, contentStr];
+        cell.labelMessage.text = [self handleMessage:lastMessage
+                                        withChatType:target.type
+                                             andUser:user
+                                          andContent:contentStr];
 
         cell.imageHead.image = [GotyeUIUtil getHeadImage:group.icon.path
                                              defaultIcon:@"head_icon_room"];
@@ -426,8 +520,10 @@
 
       cell.labelUsername.text = user.name;
 
-      cell.labelMessage.text = contentStr;
-
+      cell.labelMessage.text = [self handleMessage:lastMessage
+                                      withChatType:target.type
+                                           andUser:user
+                                        andContent:contentStr];
       UIImage *headImage = [GotyeUIUtil getHeadImage:user.icon.path
                                          defaultIcon:@"head_icon_user"];
 
@@ -440,10 +536,10 @@
           [GotyeOCAPI getUserDetail:lastMessage.sender forceRequest:NO];
 
       cell.labelUsername.text = room.name;
-        
-      cell.labelMessage.text =
-          [NSString stringWithFormat:@"%@:%@", user.name, contentStr];
-
+      cell.labelMessage.text = [self handleMessage:lastMessage
+                                      withChatType:target.type
+                                           andUser:user
+                                        andContent:contentStr];
       cell.imageHead.image = [GotyeUIUtil getHeadImage:room.icon.path
                                            defaultIcon:@"head_icon_room"];
 
@@ -456,9 +552,10 @@
 
       cell.labelUsername.text = group.name;
 
-      cell.labelMessage.text =
-          [NSString stringWithFormat:@"%@:%@", user.name, contentStr];
-
+      cell.labelMessage.text = [self handleMessage:lastMessage
+                                      withChatType:target.type
+                                           andUser:user
+                                        andContent:contentStr];
       cell.imageHead.image = [GotyeUIUtil getHeadImage:group.icon.path
                                            defaultIcon:@"head_icon_room"];
     } break;
@@ -502,8 +599,8 @@
       switch (target.type) {
       case GotyeChatTargetTypeGroup:
       case GotyeChatTargetTypeUser: {
-        GotyeChatViewController *viewController =
-            [[GotyeChatViewController alloc] initWithTarget:target];
+        RedPacketChatViewController *viewController =
+            [[RedPacketChatViewController alloc] initWithTarget:target];
         [self.tabBarController.navigationController
             pushViewController:viewController
                       animated:YES];
@@ -519,8 +616,8 @@
             [GotyeUIUtil showHUD:@"进入聊天室"];
           } else if (code == GotyeStatusCodeOK) {
             if (self.navigationController.topViewController == self) {
-              GotyeChatViewController *viewController =
-                  [[GotyeChatViewController alloc] initWithTarget:room];
+              RedPacketChatViewController *viewController =
+                  [[RedPacketChatViewController alloc] initWithTarget:room];
               [self.navigationController pushViewController:viewController
                                                    animated:YES];
             }
@@ -538,8 +635,8 @@
     switch (target.type) {
     case GotyeChatTargetTypeGroup:
     case GotyeChatTargetTypeUser: {
-      GotyeChatViewController *viewController =
-          [[GotyeChatViewController alloc] initWithTarget:target];
+      RedPacketChatViewController *viewController =
+          [[RedPacketChatViewController alloc] initWithTarget:target];
       [self.tabBarController.navigationController
           pushViewController:viewController
                     animated:YES];
@@ -555,8 +652,8 @@
           [GotyeUIUtil showHUD:@"进入聊天室"];
         } else if (code == GotyeStatusCodeOK) {
           if (self.navigationController.topViewController == self) {
-            GotyeChatViewController *viewController =
-                [[GotyeChatViewController alloc] initWithTarget:room];
+            RedPacketChatViewController *viewController =
+                [[RedPacketChatViewController alloc] initWithTarget:room];
             [self.navigationController pushViewController:viewController
                                                  animated:YES];
           }
@@ -634,9 +731,5 @@ alignmentForButtonAtIndex:(NSUInteger)index {
   } break;
   }
 }
-
-@end
-
-@implementation GotyeMessageCell
 
 @end

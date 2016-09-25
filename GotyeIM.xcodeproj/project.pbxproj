@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		180F2D331D967D200099B961 /* RedPacketChatViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 180F2D321D967D200099B961 /* RedPacketChatViewController.m */; };
+		180F2D361D967F770099B961 /* RedPacketMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 180F2D351D967F770099B961 /* RedPacketMessageViewController.m */; };
+		18497CFE1D97EC9000D88BBA /* RedPacketChatViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 18497CFD1D97EC9000D88BBA /* RedPacketChatViewController.xib */; };
+		18497D001D97EFCD00D88BBA /* RedPacketMessageViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 18497CFF1D97EFCD00D88BBA /* RedPacketMessageViewController.xib */; };
 		3E7741431D1BE254008ED159 /* RedpacketCellResource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 3E7741421D1BE254008ED159 /* RedpacketCellResource.bundle */; };
 		3E80BD8E1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E80BD7A1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m */; };
 		3E80BD911D1A3B17004A645A /* RedpacketNetworkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E80BD801D1A3B17004A645A /* RedpacketNetworkHelper.m */; };
@@ -87,6 +91,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		180F2D311D967D200099B961 /* RedPacketChatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RedPacketChatViewController.h; sourceTree = "<group>"; };
+		180F2D321D967D200099B961 /* RedPacketChatViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RedPacketChatViewController.m; sourceTree = "<group>"; };
+		180F2D341D967F770099B961 /* RedPacketMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RedPacketMessageViewController.h; sourceTree = "<group>"; };
+		180F2D351D967F770099B961 /* RedPacketMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RedPacketMessageViewController.m; sourceTree = "<group>"; };
+		18497CFD1D97EC9000D88BBA /* RedPacketChatViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RedPacketChatViewController.xib; sourceTree = "<group>"; };
+		18497CFF1D97EFCD00D88BBA /* RedPacketMessageViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RedPacketMessageViewController.xib; sourceTree = "<group>"; };
 		3E7741421D1BE254008ED159 /* RedpacketCellResource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = RedpacketCellResource.bundle; sourceTree = "<group>"; };
 		3E80BD791D1A3B17004A645A /* RedPacketGotyeChatBubbleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RedPacketGotyeChatBubbleView.h; sourceTree = "<group>"; };
 		3E80BD7A1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RedPacketGotyeChatBubbleView.m; sourceTree = "<group>"; };
@@ -272,6 +282,12 @@
 		3E80BD781D1A3B17004A645A /* RedpacketOpen */ = {
 			isa = PBXGroup;
 			children = (
+				180F2D341D967F770099B961 /* RedPacketMessageViewController.h */,
+				180F2D351D967F770099B961 /* RedPacketMessageViewController.m */,
+				18497CFF1D97EFCD00D88BBA /* RedPacketMessageViewController.xib */,
+				180F2D311D967D200099B961 /* RedPacketChatViewController.h */,
+				180F2D321D967D200099B961 /* RedPacketChatViewController.m */,
+				18497CFD1D97EC9000D88BBA /* RedPacketChatViewController.xib */,
 				3ECC2A241D2CFF4E00AB3129 /* GotyeAppDelegate+Redpacket.h */,
 				3ECC2A251D2CFF4E00AB3129 /* GotyeAppDelegate+Redpacket.m */,
 				3E80BD791D1A3B17004A645A /* RedPacketGotyeChatBubbleView.h */,
@@ -447,9 +463,9 @@
 				D0E2EAB219F0B902001A653E /* GotyeChatBubbleView.m */,
 				D0C0C64419EF74D700138544 /* GotyeChatViewController.h */,
 				D0C0C64519EF74D700138544 /* GotyeChatViewController.m */,
+				D0C0C64619EF74D700138544 /* GotyeChatViewController.xib */,
 				4DD6EA4C1BD776DB0056DC4D /* GotyeChatTableViewCell.h */,
 				4DD6EA4D1BD776DB0056DC4D /* GotyeChatTableViewCell.m */,
-				D0C0C64619EF74D700138544 /* GotyeChatViewController.xib */,
 				D07F500219F632AB008DBBE3 /* GotyeRealTimeVoiceController.h */,
 				D07F500319F632AB008DBBE3 /* GotyeRealTimeVoiceController.m */,
 				D07F500419F632AB008DBBE3 /* GotyeRealTimeVoiceController.xib */,
@@ -615,6 +631,7 @@
 				D0A3B0D819EB9DAE002956F8 /* GotyeLoginController.xib in Resources */,
 				D0C0C64819EF74D700138544 /* GotyeChatViewController.xib in Resources */,
 				D0A451241A00D0CF00E70359 /* GotyeSearchBar.xib in Resources */,
+				18497D001D97EFCD00D88BBA /* RedPacketMessageViewController.xib in Resources */,
 				D0BA650219D7F544003F599C /* GotyeMessageCell.xib in Resources */,
 				3ECC2A0C1D2CF77000AB3129 /* AlipaySDK.bundle in Resources */,
 				D0BDC4C619E639F8001A0AEA /* GotyeGroupCreateController.xib in Resources */,
@@ -627,6 +644,7 @@
 				D0C9E05819D95F4500573396 /* GotyeNotifyCell.xib in Resources */,
 				D07F500619F632AB008DBBE3 /* GotyeRealTimeVoiceController.xib in Resources */,
 				3E7741431D1BE254008ED159 /* RedpacketCellResource.bundle in Resources */,
+				18497CFE1D97EC9000D88BBA /* RedPacketChatViewController.xib in Resources */,
 				3ECC2A231D2CFBD400AB3129 /* RedPacketResource.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -652,6 +670,7 @@
 				D0D3369319D7B92100FC4CF3 /* GotyeTabViewController.m in Sources */,
 				D0E2EAB319F0B902001A653E /* GotyeChatBubbleView.m in Sources */,
 				D0BDC4C519E639F8001A0AEA /* GotyeGroupCreateController.m in Sources */,
+				180F2D331D967D200099B961 /* RedPacketChatViewController.m in Sources */,
 				D0EE775119F8F58D00879F91 /* GotyeUserInfoController.m in Sources */,
 				D0C9E05C19D965C000573396 /* GotyeAddFriendController.m in Sources */,
 				D0BDC4CE19E68889001A0AEA /* GotyeChatRoomListController.m in Sources */,
@@ -671,6 +690,7 @@
 				3E80BD8E1D1A3B17004A645A /* RedPacketGotyeChatBubbleView.m in Sources */,
 				D0BC96DD19FA34F500F23017 /* GotyeSettingManager.m in Sources */,
 				D0BDC4CA19E67AB2001A0AEA /* GotyeGroupSelUserController.m in Sources */,
+				180F2D361D967F770099B961 /* RedPacketMessageViewController.m in Sources */,
 				D0A451201A00BF4E00E70359 /* GotyeSearchBar.m in Sources */,
 				D0C9E05219D95E2B00573396 /* GotyeNotifyController.m in Sources */,
 			);

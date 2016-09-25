@@ -13,7 +13,12 @@
 #import "GotyeGroupListController.h"
 
 #import "GotyeOCAPI.h"
+
+#ifdef REDPACKET_AVALABLE
+#import "RedPacketChatViewController.h"
+#else
 #import "GotyeChatViewController.h"
+#endif
 
 @interface GotyeContactViewController () <GotyeOCDelegate, GotyeContextMenuCellDataSource, GotyeContextMenuCellDelegate>
 
@@ -302,8 +307,15 @@
         {
             if([user.name isEqualToString:sectionArray[indexPath.row]])
             {
+                
+#ifdef REDPACKET_AVALABLE
+                 RedPacketChatViewController *viewController = [[RedPacketChatViewController alloc] initWithTarget:user];
+                [self.tabBarController.navigationController pushViewController:viewController animated:YES];
+#else
                 GotyeChatViewController *viewController = [[GotyeChatViewController alloc] initWithTarget:user];
                 [self.tabBarController.navigationController pushViewController:viewController animated:YES];
+#endif
+
                 
                 break;
             }

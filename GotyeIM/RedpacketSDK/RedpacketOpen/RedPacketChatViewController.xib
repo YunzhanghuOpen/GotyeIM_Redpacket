@@ -5,7 +5,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="GotyeChatViewController">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="RedPacketChatViewController">
             <connections>
                 <outlet property="buttonRealTime" destination="Azu-nt-8pe" id="U1Q-0d-uqa"/>
                 <outlet property="buttonSpeak" destination="Iwm-nk-f2y" id="azE-6j-GaS"/>
@@ -15,6 +15,7 @@
                 <outlet property="inputView" destination="kdh-Ba-MD2" id="FZv-pg-n3x"/>
                 <outlet property="labelRealTimeStart" destination="RlY-sc-aUB" id="spl-qi-gjJ"/>
                 <outlet property="realtimeStartView" destination="XDx-an-fMj" id="NMJ-3o-nA0"/>
+                <outlet property="redPacketButton" destination="9wi-a7-OuM" id="g95-DX-CF2"/>
                 <outlet property="speakingView" destination="5Rr-GG-Zm0" id="EdV-kL-sgv"/>
                 <outlet property="tableView" destination="LsY-SL-Xyj" id="Ign-X4-UGZ"/>
                 <outlet property="textInput" destination="lbF-KG-6J7" id="2aw-L8-myu"/>
@@ -198,6 +199,23 @@
                                         <action selector="realtimeClick:" destination="-1" eventType="touchUpInside" id="ewu-hw-9CM"/>
                                     </connections>
                                 </button>
+                                <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9wi-a7-OuM">
+                                    <rect key="frame" x="246" y="20" width="50" height="70"/>
+                                    <constraints>
+                                        <constraint firstAttribute="width" constant="50" id="wIs-9g-c9B"/>
+                                        <constraint firstAttribute="height" constant="70" id="ypC-ub-BPN"/>
+                                    </constraints>
+                                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                    <inset key="titleEdgeInsets" minX="-52" minY="56" maxX="0.0" maxY="0.0"/>
+                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="20"/>
+                                    <state key="normal" title="红包" image="redpacket_redpacket">
+                                        <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                    </state>
+                                    <state key="highlighted" title="红包" image="redpacket_redpacket_high"/>
+                                    <connections>
+                                        <action selector="redpacketAction:" destination="-1" eventType="touchUpInside" id="41O-a9-VLj"/>
+                                    </connections>
+                                </button>
                             </subviews>
                             <color key="backgroundColor" red="0.93333333333333335" green="0.93333333333333335" blue="0.93333333333333335" alpha="1" colorSpace="calibratedRGB"/>
                             <constraints>
@@ -206,7 +224,9 @@
                                 <constraint firstItem="GQS-7R-k4K" firstAttribute="leading" secondItem="T23-7I-W4t" secondAttribute="leading" constant="24" id="QhM-Cb-os5"/>
                                 <constraint firstAttribute="height" constant="100" id="S4j-AG-qBs"/>
                                 <constraint firstItem="Azu-nt-8pe" firstAttribute="top" secondItem="T23-7I-W4t" secondAttribute="top" constant="20" id="bxO-GB-Y5n"/>
+                                <constraint firstItem="9wi-a7-OuM" firstAttribute="leading" secondItem="Azu-nt-8pe" secondAttribute="trailing" constant="24" id="e84-CT-vt8"/>
                                 <constraint firstItem="GQS-7R-k4K" firstAttribute="top" secondItem="T23-7I-W4t" secondAttribute="top" constant="20" id="jqT-Ia-13G"/>
+                                <constraint firstItem="9wi-a7-OuM" firstAttribute="top" secondItem="T23-7I-W4t" secondAttribute="top" constant="20" id="lDD-zL-2u4"/>
                                 <constraint firstItem="INR-em-ERZ" firstAttribute="top" secondItem="T23-7I-W4t" secondAttribute="top" constant="20" id="z3F-9q-dBm"/>
                             </constraints>
                         </view>
@@ -309,5 +329,7 @@
         <image name="chat_realtime_arrow" width="11" height="17"/>
         <image name="chat_realtime_mic_blue" width="62" height="70"/>
         <image name="chat_text_input" width="23" height="21"/>
+        <image name="redpacket_redpacket" width="60" height="60"/>
+        <image name="redpacket_redpacket_high" width="60" height="60"/>
     </resources>
 </document>

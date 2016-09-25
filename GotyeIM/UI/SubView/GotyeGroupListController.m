@@ -13,7 +13,11 @@
 
 #import "GotyeOCAPI.h"
 
+#ifdef REDPACKET_AVALABLE
+#import "RedPacketChatViewController.h"
+#else
 #import "GotyeChatViewController.h"
+#endif
 
 #import "GotyeGroupSearchController.h"
 
@@ -153,8 +157,13 @@
 {
     GotyeOCGroup* group = grouplistReceive[indexPath.row];
     
+#ifdef REDPACKET_AVALABLE
+    RedPacketChatViewController*viewController = [[RedPacketChatViewController alloc] initWithTarget:group];
+    [self.navigationController pushViewController:viewController animated:YES];
+#else
     GotyeChatViewController*viewController = [[GotyeChatViewController alloc] initWithTarget:group];
     [self.navigationController pushViewController:viewController animated:YES];
+#endif
 
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }

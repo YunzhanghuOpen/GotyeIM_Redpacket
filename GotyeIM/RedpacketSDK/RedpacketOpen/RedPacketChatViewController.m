@@ -1,14 +1,18 @@
 //
-//  GotyeChatViewController.m
+//  RedPacketChatViewController.m
 //  GotyeIM
 //
-//  Created by Peter on 14-10-16.
-//  Copyright (c) 2014年 Gotye. All rights reserved.
+//  Created by 非夜 on 16/9/24.
+//  Copyright © 2016年 Gotye. All rights reserved.
 //
 
-#import "GotyeChatViewController.h"
+#import "RedPacketChatViewController.h"
 
 #import "GotyeUIUtil.h"
+
+#import "RedPacketGotyeChatBubbleView.h"
+#import "RedpacketViewControl.h"
+#import "YZHRedpacketBridge.h"
 
 #import "GotyeChatBubbleView.h"
 
@@ -26,9 +30,11 @@
 #define BD_API_KEY @"oKUHg75KeH787zPesCSEAGPw"
 #define BD_SECRET_KEY @"dIR5nZGZreIUZpfnMRmVDBbBDIGtZlLK"
 
-static GotyeChatViewController *chatViewRetainForBDVR = nil;
+static RedPacketChatViewController *chatViewRetainForBDVR = nil;
 
-@interface GotyeChatViewController () <
+@interface RedPacketChatViewController () <
+
+    GotyeOCDelegate, RedpacketViewControlDelegate,
 
     UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate,
     UINavigationControllerDelegate> {
@@ -58,12 +64,276 @@ static GotyeChatViewController *chatViewRetainForBDVR = nil;
   BOOL hasscrollView;
 }
 
+/**
+ *  发红包的控制器
+ */
+@property(nonatomic, strong) RedpacketViewControl *viewControl;
+@property(nonatomic, strong) NSMutableArray *groupUsersArray;
+
 @end
 
-@implementation GotyeChatViewController
+@implementation RedPacketChatViewController
 
 @synthesize chatView, inputView, buttonVoice, buttonWrite, realtimeStartView,
     labelRealTimeStart, textInput, buttonRealTime, buttonSpeak, speakingView;
+
+#pragma Delegate RedpacketViewControlDelegate
+
+// 要在此处根据userID获得用户昵称,和头像地址
+- (RedpacketUserInfo *)profileEntityWith:(GotyeOCUser *)user {
+  RedpacketUserInfo *userInfo = [RedpacketUserInfo new];
+  userInfo.userNickname = user.nickname ? user.nickname : user.name;
+  userInfo.userAvatar = user.icon.url;
+  userInfo.userId = user.name;
+  return userInfo;
+}
+//定向红包
+- (NSArray *)groupMemberList {
+
+  NSMutableArray *mArray = [[NSMutableArray alloc] init];
+
+  for (GotyeOCUser *user in self.groupUsersArray) {
+    //创建一个用户模型 并赋值
+    RedpacketUserInfo *userInfo = [self profileEntityWith:user];
+    BOOL msgFromSelf =
+        [[GotyeOCAPI getLoginUser].name isEqualToString:userInfo.userId];
+    if (msgFromSelf) {
+      //定向红包 不能包含自己
+    } else {
+      [mArray addObject:userInfo];
+    }
+  }
+
+  return mArray;
+}
+
+- (void)delToSelfPacketMessage:(GotyeOCMessage *)message {
+
+  if (message == nil) {
+    return;
+  }
+
+  GotyeOCUser *loginUser = [GotyeOCAPI getLoginUser];
+
+  NSDictionary *ext = [self transformExtToDictionary:message];
+  if ([RedpacketMessageModel isRedpacketRelatedMessage:ext]) {
+    if ([RedpacketMessageModel isRedpacketTakenMessage:ext]) {
+      // 由于没有透传消息
+      // 如果群红包，A发的，A打开，others收到消息，others删除消息
+      // if ([ext[@"money_sender_id"]
+      // isEqualToString:ext[@"money_receiver_id"]]) {
+      //     [GotyeOCAPI deleteMessage:chatTarget msg:message];
+      //     return;
+      // }
+      // 由于没有透传消息
+      // 如果群红包，A发的，B打开，other收到消息，除了A之外的others删除
+      if (![ext[@"money_sender_id"] isEqualToString:loginUser.name]) {
+        [GotyeOCAPI deleteMessage:chatTarget msg:message];
+        return;
+      }
+    }
+  }
+}
+
+- (NSDictionary *)transformExtToDictionary:(GotyeOCMessage *)message {
+
+  NSDictionary *dic = nil;
+
+  NSData *data = [message
+      getExtraData]; //[NSData dataWithContentsOfFile:message.extra.path];
+  if (data != nil) {
+    char *str = malloc(data.length + 1);
+    [data getBytes:str length:data.length];
+    str[data.length] = 0;
+    NSString *extraStr = [NSString stringWithUTF8String:str];
+    free(str);
+    NSData *jsonData = [extraStr dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                          options:NSJSONReadingMutableContainers
+                                            error:&err];
+  }
+  return dic;
+}
+
+- (void)configRedPacketChatViewController {
+  self.groupUsersArray = [[NSMutableArray alloc] init];
+  // 获取群组人数，如果是群组或者room
+
+  if (chatTarget.type == GotyeChatTargetTypeRoom) {
+    [GotyeOCAPI
+        reqRoomMemberList:[GotyeOCRoom roomWithId:chatTarget.id]
+                pageIndex:0]; /// <对应回调GotyeOCDelegate::onGetRoomMemberList
+  }
+  if (chatTarget.type == GotyeChatTargetTypeGroup) {
+    [GotyeOCAPI
+        reqGroupMemberList:[GotyeOCGroup groupWithId:chatTarget.id]
+                 pageIndex:0]; /// <对应回调GotyeOCDelegate::onGetRoomMemberList
+  }
+
+  /**
+   红包功能的控制器， 产生用户单击红包后的各种动作
+   */
+  _viewControl = [[RedpacketViewControl alloc] init];
+  //  需要当前的聊天窗口
+  _viewControl.conversationController = self;
+  _viewControl.delegate = self;
+
+  //  需要当前聊天窗口的会话ID
+  RedpacketUserInfo *userInfo = [RedpacketUserInfo new];
+  userInfo.userId = chatTarget.name;
+
+  if (chatTarget.type == GotyeChatTargetTypeRoom ||
+      chatTarget.type == GotyeChatTargetTypeGroup) {
+
+    NSString *groupId = [NSString stringWithFormat:@"%lld", chatTarget.id];
+
+    userInfo.userId = groupId;
+  }
+
+  _viewControl.converstationInfo = userInfo;
+
+  __weak __typeof(self) weakSelf = self;
+
+  //  用户抢红包和用户发送红包的回调
+  [_viewControl setRedpacketGrabBlock:^(RedpacketMessageModel *messageModel) {
+    //  发送通知到发送红包者处
+    [weakSelf sendRedpacketHasBeenTaked:messageModel];
+
+  }
+      andRedpacketBlock:^(RedpacketMessageModel *model) {
+
+        model.redpacket.redpacketOrgName = @"亲加红包";
+        //  发送红包
+        [weakSelf sendRedPacketMessage:model];
+
+      }];
+
+  // 同步Token
+  [[YZHRedpacketBridge sharedBridge] reRequestRedpacketUserToken];
+}
+
+//  MARK: 发送红包消息
+- (void)sendRedPacketMessage:(RedpacketMessageModel *)model {
+  NSDictionary *dic = [model redpacketMessageModelToDic];
+
+  NSString *txt =
+      [NSString stringWithFormat:@"[%@]%@", model.redpacket.redpacketOrgName,
+                                 model.redpacket.redpacketGreeting];
+
+  GotyeOCMessage *message =
+      [GotyeOCMessage createTextMessage:chatTarget text:txt];
+
+  NSData *extData =
+      [NSJSONSerialization dataWithJSONObject:dic options:0 error:nil];
+
+  NSString *extString =
+      [[NSString alloc] initWithData:extData encoding:NSUTF8StringEncoding];
+
+  [message putExtraData:extString];
+
+  [GotyeOCAPI sendMessage:message];
+
+  [self reloadHistorys:YES];
+}
+
+//  MARK: 发送红包被抢的消息
+- (void)sendRedpacketHasBeenTaked:(RedpacketMessageModel *)messageModel {
+  NSString *currentUser = [GotyeOCAPI getLoginUser].name;
+  NSString *senderId = messageModel.redpacketSender.userId;
+
+  NSMutableDictionary *dic =
+      [messageModel.redpacketMessageModelToDic mutableCopy];
+  /**
+   *  不推送
+   */
+  [dic setValue:@(YES) forKey:@"em_ignore_notification"];
+
+  NSString *text =
+      [NSString stringWithFormat:@"你领取了%@发的红包",
+                                 messageModel.redpacketSender.userNickname];
+
+  NSData *extData =
+      [NSJSONSerialization dataWithJSONObject:dic options:0 error:nil];
+
+  NSString *extString =
+      [[NSString alloc] initWithData:extData encoding:NSUTF8StringEncoding];
+
+  if (chatTarget.type == GotyeChatTargetTypeUser) {
+
+    GotyeOCMessage *message =
+        [GotyeOCMessage createTextMessage:chatTarget text:text];
+    [message putExtraData:extString];
+    [GotyeOCAPI sendMessage:message];
+    [self reloadHistorys:YES];
+
+  } else if (chatTarget.type == GotyeChatTargetTypeRoom ||
+             chatTarget.type == GotyeChatTargetTypeGroup) {
+    if ([senderId isEqualToString:currentUser]) {
+      text = @"你领取了自己的红包";
+      // 如果是群红包，这个红包被自己领了，则给自己发一条消息，同时在消息的接收处过滤出来这条消息（过滤方式，检测是否是红包消息，检测消息发送方和自己是不是同一个人，是同一个人则删除此消息）
+      GotyeOCMessage *message =
+          [GotyeOCMessage createTextMessage:chatTarget text:text];
+      [message putExtraData:extString];
+      [GotyeOCAPI sendMessage:message];
+      [self reloadHistorys:YES];
+
+    } else {
+      GotyeOCMessage *message =
+          [GotyeOCMessage createTextMessage:chatTarget text:text];
+      [message putExtraData:extString];
+      [GotyeOCAPI sendMessage:message];
+      [self reloadHistorys:YES];
+    }
+  }
+}
+
+- (RedpacketMessageModel *)toRedpacketMessageModel:(GotyeOCMessage *)model {
+  RedpacketMessageModel *messageModel = [RedpacketMessageModel
+      redpacketMessageModelWithDic:[self transformExtToDictionary:model]];
+  BOOL isGroup = chatTarget.type == GotyeChatTargetTypeRoom |
+                 chatTarget.type == GotyeChatTargetTypeGroup;
+  messageModel.redpacketReceiver.isGroup = isGroup;
+
+  messageModel.redpacketSender.userAvatar = model.sender.icon.url;
+
+  NSString *nickName = model.sender.name;
+  if (nickName.length == 0) {
+    nickName = model.sender.name;
+  }
+  messageModel.redpacketSender.userNickname = nickName;
+  if (messageModel.redpacketSender.userId.length == 0) {
+    messageModel.redpacketSender.userId = model.sender.name;
+  }
+
+  return messageModel;
+}
+
+- (void)
+onGetRoomMemberList:(GotyeStatusCode)code
+               room:(GotyeOCRoom *)room /// <请求的聊天室
+          pageIndex:(unsigned)pageIndex /// <请求时传入的页索引
+  curPageMemberList:
+      (NSArray *)curPageMemberList /// <当前页所对应的成员列表（全局变量）
+      allMemberList:
+          (NSArray *)allMemberList /// <获取到的累计所有成员表（全局变量）
+{
+  if (allMemberList.count > 0) {
+    [self.groupUsersArray removeAllObjects];
+    [self.groupUsersArray addObjectsFromArray:allMemberList];
+  }
+}
+
+- (void)onGetGroupMemberList:(GotyeStatusCode)code
+                       group:(GotyeOCGroup *)group
+                   pageIndex:(unsigned int)pageIndex
+           curPageMemberList:(NSArray *)curPageMemberList
+               allMemberList:(NSArray *)allMemberList {
+  if (allMemberList.count > 0) {
+    [self.groupUsersArray removeAllObjects];
+    [self.groupUsersArray addObjectsFromArray:allMemberList];
+  }
+}
 
 - (id)initWithTarget:(GotyeOCChatTarget *)target {
   self = [self init];
@@ -75,7 +345,7 @@ static GotyeChatViewController *chatViewRetainForBDVR = nil;
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-
+  [self configRedPacketChatViewController];
   // Do any additional setup after loading the view from its nib.
   switch (chatTarget.type) {
   case GotyeChatTargetTypeUser: {
@@ -324,12 +594,12 @@ static GotyeChatViewController *chatViewRetainForBDVR = nil;
                  dispatch_async(dispatch_get_main_queue(), ^{
                    [[[UIAlertView alloc]
                            initWithTitle:@""
-                                 message:[NSString
-                                             stringWithFormat:@"%@需要访问您的"
-                                                              @"麦克风。\n请启"
-                                                              @"用麦克风-设置/"
-                                                              @"隐私/麦克风",
-                                                              app_Name]
+                                 message:[NSString stringWithFormat:
+                                                       @"%@需要访问您的"
+                                                       @"麦克风。\n请启"
+                                                       @"用麦克风-设置/"
+                                                       @"隐私/麦克风",
+                                                       app_Name]
                                 delegate:nil
                        cancelButtonTitle:@"确定"
                        otherButtonTitles:nil] show];
@@ -387,6 +657,8 @@ static GotyeChatViewController *chatViewRetainForBDVR = nil;
   [UIView commitAnimations];
 
   buttonRealTime.hidden = ![GotyeOCAPI supportRealtime:chatTarget];
+
+  self.redPacketButton.hidden = NO;
 
   [textInput resignFirstResponder];
 }
@@ -463,13 +735,13 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
                    dispatch_async(dispatch_get_main_queue(), ^{
                      [[[UIAlertView alloc]
                              initWithTitle:@""
-                                   message:[NSString
-                                               stringWithFormat:@"%@需要访问您"
-                                                                @"的麦克风。\n"
-                                                                @"请启用麦克风"
-                                                                @"-设置/隐私/"
-                                                                @"麦克风",
-                                                                appName]
+                                   message:[NSString stringWithFormat:
+                                                         @"%@需要访问您"
+                                                         @"的麦克风。\n"
+                                                         @"请启用麦克风"
+                                                         @"-设置/隐私/"
+                                                         @"麦克风",
+                                                         appName]
                                   delegate:nil
                          cancelButtonTitle:@"确定"
                          otherButtonTitles:nil] show];
@@ -482,6 +754,16 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     //        initWithRoomID:(unsigned)chatTarget.id talkingID:talkingUserID];
     //        [self.navigationController pushViewController:viewController
     //        animated:YES];
+  }
+}
+
+- (IBAction)redpacketAction:(id)sender {
+  if (chatTarget.type == GotyeChatTargetTypeUser) {
+    [self.viewControl presentRedPacketViewController];
+  } else if (chatTarget.type == GotyeChatTargetTypeRoom ||
+             chatTarget.type == GotyeChatTargetTypeGroup) {
+    [self.viewControl presentRedPacketMoreViewControllerWithGroupMemberArray:
+                          self.groupUsersArray];
   }
 }
 
@@ -743,6 +1025,7 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 
 - (void)onReceiveMessage:(GotyeOCMessage *)message
      downloadMediaIfNeed:(bool *)downloadMediaIfNeed {
+  [self delToSelfPacketMessage:message];
   [self reloadHistorys:YES];
 
   *downloadMediaIfNeed = true;
@@ -751,6 +1034,11 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 - (void)onGetMessageList:(GotyeStatusCode)code
                  msglist:(NSArray *)msgList
      downloadMediaIfNeed:(bool *)downloadMediaIfNeed {
+  @autoreleasepool {
+    for (GotyeOCMessage *msg in msgList) {
+      [self delToSelfPacketMessage:msg];
+    }
+  }
 
   CGFloat lastOffsetY = self.tableView.contentOffset.y;
   CGFloat lastContentHeight = self.tableView.contentSize.height;
@@ -764,6 +1052,8 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
       scrollRectToVisible:CGRectMake(0, newOffsetY, ScreenHeight,
                                      self.tableView.frame.size.height)
                  animated:NO];
+  //    }
+
   *downloadMediaIfNeed = true;
 
   hasscrollView = YES;
@@ -1053,11 +1343,9 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
       showDate = YES;
   }
 
-
-  return [GotyeChatBubbleView getbubbleHeight:message
-                                       target:chatTarget
-                                     showDate:showDate];
-
+  return [RedPacketGotyeChatBubbleView getbubbleHeight:message
+                                                target:chatTarget
+                                              showDate:showDate];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView
@@ -1085,9 +1373,9 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
       showDate = YES;
   }
 
-  UIView *bubble = [GotyeChatBubbleView BubbleWithMessage:message
-                                                   target:chatTarget
-                                                 showDate:showDate];
+  UIView *bubble = [RedPacketGotyeChatBubbleView BubbleWithMessage:message
+                                                            target:chatTarget
+                                                          showDate:showDate];
 
   UIButton *msgButton =
       (UIButton *)[(UIButton *)bubble viewWithTag:bubbleMessageButtonTag];
@@ -1137,6 +1425,15 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     });
 
   } else {
+    GotyeOCMessage *message = messageList[indexPath.row];
+    NSDictionary *dict = [self transformExtToDictionary:message];
+
+    if ([RedpacketMessageModel isRedpacket:dict]) {
+      [self.viewControl redpacketCellTouchedWithMessageModel:
+                            [self toRedpacketMessageModel:message]];
+
+    } else {
+    }
   }
 }
 
